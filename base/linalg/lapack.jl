@@ -3109,11 +3109,11 @@ for (gecon, elty, relty) in
 end
 
 # Hessenberg form
-for (gehrd, elty) in
-    ((:dgehrd_,:Float64),
-     (:sgehrd_,:Float32),
-     (:zgehrd_,:Complex128),
-     (:cgehrd_,:Complex64))
+for (   gehrd ,  hsein , elty) in
+    ((:dgehrd_,:dhsein_,:Float64),
+     (:sgehrd_,:shsein_,:Float32),
+     (:zgehrd_,:zhsein_,:Complex128),
+     (:cgehrd_,:chsein_,:Complex64))
     @eval begin
         function gehrd!(ilo::Integer, ihi::Integer, A::StridedMatrix{$elty})
 #                 .. Scalar Arguments ..
@@ -3146,6 +3146,74 @@ for (gehrd, elty) in
     end
 end
 gehrd!(A::StridedMatrix) = gehrd!(1, size(A, 1), A)
+
+for (   hsein , elty) in
+    ((:dhsein_,:Float64),
+     (:shsein_,:Float32),
+    @eval begin
+        function hsein!(size::BlasChar, eigsrc::BlasChar, initv::BlasChar, select::Vector{Bool},
+            H::StridedMatrix{$elty}, wr::Vector{$elty}, wi::Vector{elty}, vl::StridedMatrix{$elty},
+            vr::StridedMatrix{$elty})
+#       SUBROUTINE DHSEIN( SIDE, EIGSRC, INITV, SELECT, N, H, LDH, WR, WI,
+#      $                   VL, LDVL, VR, LDVR, MM, M, WORK, IFAILL,
+#      $                   IFAILR, INFO )
+# *
+# *     .. Scalar Arguments ..
+#       CHARACTER          EIGSRC, INITV, SIDE
+#       INTEGER            INFO, LDH, LDVL, LDVR, M, MM, N
+# *     ..
+# *     .. Array Arguments ..
+#       LOGICAL            SELECT( * )
+#       INTEGER            IFAILL( * ), IFAILR( * )
+#       DOUBLE PRECISION   H( LDH, * ), VL( LDVL, * ), VR( LDVR, * ),
+#      $                   WI( * ), WORK( * ), WR( * )
+         N, LDH = size(H)
+         LDVL, M = size(vl)
+         LDVR, MM= size(vr)
+         work = Array($elty, (N+2)*N)
+         ifaill = Array(BlasInt, MM)
+         ifailr = Array(BlasInt, MM)
+         info = Array(BlasInt, 1)
+
+         #This is now ready for the ccall
+       end
+    end
+end
+
+for (   hsein , elty, relty) in
+    ((:zhsein_,:Complex128, :Float64),
+     (:chsein_,:Complex64, :Float32))
+    @eval begin
+        function hsein!(size::BlasChar, eigsrc::BlasChar, initv::BlasChar, select::Vector{Bool},
+            H::StridedMatrix{$elty}, wr::Vector{$elty}, wi::Vector{elty}, vl::StridedMatrix{$elty},
+            vr::StridedMatrix{$elty})
+#       SUBROUTINE DHSEIN( SIDE, EIGSRC, INITV, SELECT, N, H, LDH, WR, WI,
+#      $                   VL, LDVL, VR, LDVR, MM, M, WORK, IFAILL,
+#      $                   IFAILR, INFO )
+# *
+# *     .. Scalar Arguments ..
+#       CHARACTER          EIGSRC, INITV, SIDE
+#       INTEGER            INFO, LDH, LDVL, LDVR, M, MM, N
+# *     ..
+# *     .. Array Arguments ..
+#       LOGICAL            SELECT( * )
+#       INTEGER            IFAILL( * ), IFAILR( * )
+#       DOUBLE PRECISION   H( LDH, * ), VL( LDVL, * ), VR( LDVR, * ),
+#      $                   WI( * ), WORK( * ), WR( * )
+         N, LDH = size(H)
+         LDVL, M = size(vl)
+         LDVR, MM= size(vr)
+         work = Array($elty, (N+2)*N)
+         ifaill = Array(BlasInt, MM)
+         ifailr = Array(BlasInt, MM)
+         info = Array(BlasInt, 1)
+
+         #This is now ready for the ccall
+       end
+    end
+end
+
+
 
 # construct Q from Hessenberg
 for (orghr, elty) in
