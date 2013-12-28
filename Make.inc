@@ -66,7 +66,7 @@ BUILD_LLDB = 0
 BUILD = $(JULIAHOME)/usr
 
 # Directories where said libraries get installed to
-LIBDIR = lib
+LIBDIR = $(PREFIX)/lib
 JL_LIBDIR = $(LIBDIR)
 JL_PRIVATE_LIBDIR = $(JL_LIBDIR)/julia
 
@@ -344,11 +344,7 @@ ifeq ($(USE_SYSTEM_LIBUV), 1)
   LIBUV = /usr/lib/libuv-julia.a
   LIBUV_INC = /usr/include
 else
-ifeq ($(OS),WINNT)
-  LIBUV = $(BUILD)/lib/libuv.a
-else
-  LIBUV = $(BUILD)/$(JL_LIBDIR)/libuv.a
-endif
+  LIBUV = $(BUILD)$(JL_LIBDIR)/libuv.a
   LIBUV_INC = $(JULIAHOME)/deps/libuv/include
 endif
 
