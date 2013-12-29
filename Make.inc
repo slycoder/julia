@@ -64,6 +64,7 @@ BUILD_LLVM_CLANG = 0
 BUILD_LLDB = 0
 
 BUILD = $(JULIAHOME)/usr
+PREFIX =
 
 # Directories where said libraries get installed to
 LIBDIR = $(PREFIX)/lib
