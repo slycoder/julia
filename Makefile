@@ -15,7 +15,7 @@ INSTALL_M = install -pm755
 all: default
 default: release
 
-DIRS = $(BUILD)/bin $(BUILD)/etc/julia $(BUILD)/libexec $(BUILD)/share/julia $(BUILD)/share/julia/man/man1
+DIRS = $(BUILD)/bin $(BUILD)$(SYSCONFDIR)/julia $(BUILD)/libexec $(BUILD)/share/julia $(BUILD)/share/julia/man/man1
 ifneq ($(JL_LIBDIR), bin)
 DIRS += $(BUILD)$(JL_LIBDIR)
 endif
@@ -28,7 +28,7 @@ endif
 $(foreach dir,$(DIRS),$(eval $(call dir_target,$(dir))))
 $(foreach link,base test doc examples,$(eval $(call symlink_target,$(link),$(BUILD)/share/julia)))
 
-debug release: | $(DIRS) $(BUILD)/share/julia/base $(BUILD)/share/julia/test $(BUILD)/share/julia/doc $(BUILD)/share/julia/examples $(BUILD)/etc/julia/juliarc.jl
+debug release: | $(DIRS) $(BUILD)/share/julia/base $(BUILD)/share/julia/test $(BUILD)/share/julia/doc $(BUILD)/share/julia/examples $(BUILD)$(SYSCONFDIR)/julia/juliarc.jl
 	@$(MAKE) $(QUIET_MAKE) julia-$@
 	@export JL_PRIVATE_LIBDIR=$(JL_PRIVATE_LIBDIR) && \
 	$(MAKE) $(QUIET_MAKE) LD_LIBRARY_PATH=$(BUILD)$(JL_LIBDIR):$(LD_LIBRARY_PATH) JULIA_EXECUTABLE="$(JULIA_EXECUTABLE_$@)" $(BUILD)$(JL_PRIVATE_LIBDIR)/sys.$(SHLIB_EXT)
@@ -59,11 +59,11 @@ $(BUILD)/share/man/man1/julia.1: doc/man/julia.1 | $(BUILD)/share/julia
 	@mkdir -p $(BUILD)/share/man/man1
 	@cp $< $@
 
-$(BUILD)/etc/julia/juliarc.jl: etc/juliarc.jl | $(BUILD)/etc/julia
+$(BUILD)$(SYSCONFDIR)/julia/juliarc.jl: etc/juliarc.jl | $(BUILD)$(SYSCONFDIR)/julia
 	@cp $< $@
 ifeq ($(OS), WINNT)
-	@cat ./contrib/windows/juliarc.jl >> $(BUILD)/etc/julia/juliarc.jl
-$(BUILD)/etc/julia/juliarc.jl: contrib/windows/juliarc.jl
+	@cat ./contrib/windows/juliarc.jl >> $(BUILD)$(SYSCONFDIR)/julia/juliarc.jl
+$(BUILD)$(SYSCONFDIR)/julia/juliarc.jl: contrib/windows/juliarc.jl
 endif
 
 # use sys.ji if it exists, otherwise run two stages
@@ -177,6 +177,7 @@ install:
 	done
 	mkdir -p $(DESTDIR)$(JL_LIBDIR)
 	mkdir -p $(DESTDIR)$(JL_PRIVATE_LIBDIR)
+	mkdir -p $(DESTDIR)$(SYSCONFDIR)
 
 	$(INSTALL_M) $(BUILD)/bin/julia* $(DESTDIR)$(PREFIX)/bin/
 	# $(INSTALL_F) $(BUILD)/bin/llc$(EXE) $(DESTDIR)$(PREFIX)/libexec # this needs libLLVM-3.3.$(SHLIB_EXT)
@@ -211,13 +212,9 @@ ifeq ($(OS), WINNT)
 endif
 	# Copy in beautiful new man page!
 	$(INSTALL_F) $(BUILD)/share/man/man1/julia.1 $(DESTDIR)$(PREFIX)/share/man/man1/
-	# Copy etc/julia directory to SYSCONFIGDIR if it is set, otherwise to just $(PREFIX)/etc/
-ifneq ($(SYSCONFDIR),)
+
 	mkdir -p $(DESTDIR)$(SYSCONFDIR)
-	cp -R $(BUILD)/etc/julia $(DESTDIR)$(SYSCONFDIR)/
-else
-	cp -R $(BUILD)/etc/julia $(DESTDIR)$(PREFIX)/etc/
-endif
+	cp -R $(BUILD)$(SYSCONFDIR)/julia $(DESTDIR)$(SYSCONFDIR)/
 
 
 dist:

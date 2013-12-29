@@ -70,6 +70,8 @@ LIBDIR = $(PREFIX)/lib
 JL_LIBDIR = $(LIBDIR)
 JL_PRIVATE_LIBDIR = $(JL_LIBDIR)/julia
 
+SYSCONFDIR = $(PREFIX)/etc
+
 # This used for debian packaging, to conform to library layout guidelines
 ifeq ($(MULTIARCH_INSTALL), 1)
 MULTIARCH = $(shell gcc -print-multiarch)
