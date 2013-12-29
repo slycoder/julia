@@ -70,6 +70,10 @@ LIBDIR = $(PREFIX)/lib
 JL_LIBDIR = $(LIBDIR)
 JL_PRIVATE_LIBDIR = $(JL_LIBDIR)/julia
 
+BINDIR = $(PREFIX)/bin
+LIBEXECDIR = $(PREFIX)/libexec
+DATADIR = $(PREFIX)/share
+INCLUDEDIR = $(PREFIX)/include
 SYSCONFDIR = $(PREFIX)/etc
 
 # This used for debian packaging, to conform to library layout guidelines
@@ -532,8 +536,8 @@ exec = $(shell $(call spawn,$(1)))
 wine_pathsearch = $(firstword $(wildcard $(addsuffix /$(1),$(shell printf %s\n '$(2)' | xargs -d";" winepath -u | tr '\n' ' '))))
 pathsearch = $(firstword $(wildcard $(addsuffix /$(1),$(subst :, ,$(2)))))
 
-JULIA_EXECUTABLE_debug = $(BUILD)/bin/julia-debug-$(DEFAULT_REPL)$(EXE)
-JULIA_EXECUTABLE_release = $(BUILD)/bin/julia-$(DEFAULT_REPL)$(EXE)
+JULIA_EXECUTABLE_debug = $(BUILD)$(BINDIR)/julia-debug-$(DEFAULT_REPL)$(EXE)
+JULIA_EXECUTABLE_release = $(BUILD)$(BINDIR)/julia-$(DEFAULT_REPL)$(EXE)
 
 ifeq ($(OS), WINNT)
 JULIA_EXECUTABLE = $(JULIA_EXECUTABLE_release)

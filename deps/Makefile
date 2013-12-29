@@ -4,7 +4,7 @@ include $(JULIAHOME)/Make.inc
 include Versions.make
 
 CONFIGURE_CC = F77="$(FC)" CC="$(CC)" CXX="$(CXX)" 
-CONFIGURE_OPTIONS = --prefix=$(abspath $(BUILD)) --build=$(BUILD_MACHINE) --libdir=$(abspath $(BUILD)$(JL_LIBDIR))
+CONFIGURE_OPTIONS = --prefix=$(abspath $(BUILD)$(PREFIX)) --build=$(BUILD_MACHINE) --libdir=$(abspath $(BUILD)$(JL_LIBDIR))
 ifneq ($(XC_HOST),)
 CONFIGURE_OPTIONS += --host=$(XC_HOST)
 endif
@@ -44,7 +44,7 @@ endif
 ifeq ($(OS), Linux)
 ifneq ($(shell patchelf --version 2>/dev/null), patchelf 0.6)
 STAGE1_DEPS += patchelf
-PATCHELF=$(BUILD)/bin/patchelf
+PATCHELF=$(BUILD)$(BINDIR)/patchelf
 else
 PATCHELF=patchelf
 endif
@@ -97,7 +97,7 @@ endif
 ifeq ($(USE_SYSTEM_MPFR), 0)
 STAGE2_DEPS += mpfr
 ifeq ($(USE_SYSTEM_GMP), 0)
-MPFR_OPTS = --with-gmp-include=$(abspath $(BUILD)/include) --with-gmp-lib=$(abspath $(BUILD)$(JL_LIBDIR))
+MPFR_OPTS = --with-gmp-include=$(abspath $(BUILD)$(INCLUDEDIR)) --with-gmp-lib=$(abspath $(BUILD)$(JL_LIBDIR))
 endif
 endif
 ifeq ($(BUILD_OS),WINNT)
@@ -386,7 +386,7 @@ $(LLVM_OBJ_TARGET): $(LLVM_OBJ_SOURCE) | $(llvm_python_workaround)
 
 clean-llvm:
 	-$(MAKE) -C llvm-$(LLVM_VER)/build_$(LLVM_BUILDTYPE) clean
-	-rm -f $(BUILD)/bin/llvm-config
+	-rm -f $(BUILD)$(BINDIR)/llvm-config
 distclean-llvm:
 	-rm -rf llvm-$(LLVM_VER).tar.gz llvm-$(LLVM_VER).src.tar.gz clang-$(LLVM_VER).src.tar.gz clang-$(LLVM_VER).tar.gz libcxx-$(LLVM_VER).src.tar.gz compiler-rt-$(LLVM_VER).src.tar.gz llvm-$(LLVM_VER)
 
@@ -521,7 +521,7 @@ $(UV_OBJ_TARGET): $(UV_SRC_TARGET)
 
 clean-uv:
 	-$(MAKE) -C libuv clean
-	-rm -rf $(BUILD)$(JL_LIBDIR)/libuv.a $(BUILD)/include/uv.h $(BUILD)/include/uv-private
+	-rm -rf $(BUILD)$(JL_LIBDIR)/libuv.a $(BUILD)$(INCLUDEDIR)/uv.h $(BUILD)$(INCLUDEDIR)/uv-private
 distclean-uv: clean-uv
 	-$(MAKE) -C libuv distclean
 
@@ -1062,7 +1062,7 @@ $(ARPACK_OBJ_TARGET): $(ARPACK_OBJ_SOURCE) arpack-ng-$(ARPACK_VER)/checked | $(B
 	cd arpack-ng-$(ARPACK_VER) && \
 	$(MAKE) install $(ARPACK_MFLAGS)
 ifeq ($(OS), WINNT)
-	mv $(BUILD)/bin/libarpack-2.dll $@
+	mv $(BUILD)$(BINDIR)/libarpack-2.dll $@
 endif
 	$(INSTALL_NAME_CMD)libarpack.$(SHLIB_EXT) $(BUILD)$(JL_LIBDIR)/libarpack.$(SHLIB_EXT)
 ifeq ($(OS), Linux)
@@ -1382,7 +1382,7 @@ $(OSXUNWIND_OBJ_SOURCE): libosxunwind-$(OSXUNWIND_VER)/Makefile
 $(OSXUNWIND_OBJ_TARGET): $(OSXUNWIND_OBJ_SOURCE) | $(BUILD)$(JL_LIBDIR)
 	cp libosxunwind-$(OSXUNWIND_VER)/libosxunwind.a $(BUILD)$(JL_LIBDIR)/libosxunwind.a
 	cp $< $@
-	cp -R libosxunwind-$(OSXUNWIND_VER)/include/* $(BUILD)/include
+	cp -R libosxunwind-$(OSXUNWIND_VER)/include/* $(BUILD)$(INCLUDEDIR)
 	$(INSTALL_NAME_CMD)libosxunwind.$(SHLIB_EXT) $@
 
 clean-osxunwind:
@@ -1545,7 +1545,7 @@ install-zlib: $(ZLIB_OBJ_TARGET)
 ## patchelf ##
 
 PATCHELF_SOURCE = patchelf-$(PATCHELF_VER)/src/patchelf
-PATCHELF_TARGET = $(BUILD)/bin/patchelf
+PATCHELF_TARGET = $(BUILD)$(BINDIR)/patchelf
 
 compile-patchelf: install-patchelf
 install-patchelf: $(PATCHELF_TARGET)
@@ -1596,7 +1596,7 @@ git-$(GIT_VER)/configure: git-$(GIT_VER).tar.gz
 	touch -c $@
 git-$(GIT_VER)/config.status: git-$(GIT_VER)/configure
 	cd git-$(GIT_VER) && \
-	./configure $(CONFIGURE_COMMON) --bindir="$(BUILD)/libexec"
+	./configure $(CONFIGURE_COMMON) --bindir="$(BUILD)$(LIBEXECDIR)"
 	touch -c $@
 $(GIT_SOURCE): git-$(GIT_VER)/config.status
 	$(MAKE) -C git-$(GIT_VER)

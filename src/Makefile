@@ -14,7 +14,7 @@ FLAGS = \
 	-Wall -Wno-strict-aliasing -fno-omit-frame-pointer \
 	-Iflisp -Isupport -fvisibility=hidden -fno-common \
 	-I$(call exec,$(LLVM_CONFIG) --includedir) \
-	-I$(LIBUV_INC) -I$(BUILD)/include -DLIBRARY_EXPORTS
+	-I$(LIBUV_INC) -I$(BUILD)$(INCLUDEDIR) -DLIBRARY_EXPORTS
 
 LLVMLINK = $(call exec,$(LLVM_CONFIG) --libs)
 ifeq ($(USE_LLVM_SHLIB),1)
