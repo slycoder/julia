@@ -46,17 +46,17 @@ are built.  Therefore, a workaround must be enacted, where the git
 versioning information [is encoded into the
 source](https://github.com/staticfloat/julia-nightly-packaging/blob/master/build_ubuntu.sh#L76-78) before upload for building, and the source is modified to [not attempt to look for it](https://github.com/staticfloat/julia-nightly-packaging/blob/master/nogit-workaround.patch) when building.
 
-By default, Julia loads `$PREFIX/etc/julia/juliarc.jl` as an
+By default, Julia loads `$prefix/etc/julia/juliarc.jl` as an
 installation-wide initialization file. This file can be used by
 distribution managers to provide paths to various binaries such as a
 bundled `git` executable (as we do on OS X), or to setup paths (as
-we do on Windows).  For Linux distribution packages, if `$PREFIX` is
+we do on Windows).  For Linux distribution packages, if `$prefix` is
 set to `/usr`, there is no `/usr/etc` to look into. This requires
 the path to Julia's private `etc` directory to be changed.  This can
-be done via the `SYSCONFDIR` make variable when building.  Simply
-pass `SYSCONFDIR=/etc` to `make` when building and Julia will first
+be done via the `sysconfdir` make variable when building.  Simply
+pass `sysconfdir=/etc` to `make` when building and Julia will first
 check `/etc/julia/juliarc.jl` before trying
-`$PREFIX/etc/julia/juliarc.jl`.
+`$prefix/etc/julia/juliarc.jl`.
 
 OS X
 ----
