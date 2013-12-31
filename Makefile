@@ -184,24 +184,24 @@ else
 	cd $(DESTDIR)$(bindir) && ln -sf julia-$(DEFAULT_REPL) julia
 endif
 	for suffix in $(JL_LIBS) ; do \
-		$(INSTALL_F) $(BUILD)$(libdir)/lib$${suffix}*.$(SHLIB_EXT)* $(DESTDIR)$(JL_PRIVATE_LIBDIR) ; \
+		$(INSTALL_M) $(BUILD)$(libdir)/lib$${suffix}*.$(SHLIB_EXT)* $(DESTDIR)$(JL_PRIVATE_LIBDIR) ; \
 	done
 	for suffix in $(JL_PRIVATE_LIBS) ; do \
-		$(INSTALL_F) $(BUILD)$(libdir)/lib$${suffix}*.$(SHLIB_EXT)* $(DESTDIR)$(JL_PRIVATE_LIBDIR) ; \
+		$(INSTALL_M) $(BUILD)$(libdir)/lib$${suffix}*.$(SHLIB_EXT)* $(DESTDIR)$(JL_PRIVATE_LIBDIR) ; \
 	done
 ifeq ($(USE_SYSTEM_LIBUV),0)
 ifeq ($(OS),WINNT)
-	$(INSTALL_F) $(BUILD)$(libdir)/libuv.a $(DESTDIR)$(JL_PRIVATE_LIBDIR)
+	$(INSTALL_M) $(BUILD)$(libdir)/libuv.a $(DESTDIR)$(JL_PRIVATE_LIBDIR)
 	$(INSTALL_F) $(BUILD)$(includedir)/tree.h $(DESTDIR)$(includedir)/julia
 else
-	$(INSTALL_F) $(BUILD)$(libdir)/libuv.a $(DESTDIR)$(JL_PRIVATE_LIBDIR)
+	$(INSTALL_M) $(BUILD)$(libdir)/libuv.a $(DESTDIR)$(JL_PRIVATE_LIBDIR)
 endif
 	$(INSTALL_F) $(BUILD)$(includedir)/uv* $(DESTDIR)$(includedir)/julia
 endif
 	$(INSTALL_F) src/julia.h src/support/*.h $(DESTDIR)$(includedir)/julia
 	# Copy system image
 	$(INSTALL_F) $(BUILD)$(JL_PRIVATE_LIBDIR)/sys.ji $(DESTDIR)$(JL_PRIVATE_LIBDIR)
-	$(INSTALL_F) $(BUILD)$(JL_PRIVATE_LIBDIR)/sys.$(SHLIB_EXT) $(DESTDIR)$(JL_PRIVATE_LIBDIR)
+	$(INSTALL_M) $(BUILD)$(JL_PRIVATE_LIBDIR)/sys.$(SHLIB_EXT) $(DESTDIR)$(JL_PRIVATE_LIBDIR)
 	# Copy in all .jl sources as well
 	cp -R -L $(BUILD)$(datarootdir)/julia $(DESTDIR)$(datarootdir)/
 ifeq ($(OS), WINNT)
