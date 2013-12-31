@@ -146,7 +146,8 @@ distclean: $(addprefix distclean-, $(LIBS))
 getall: get-llvm get-readline get-uv get-pcre get-double-conversion get-openlibm get-openspecfun get-random get-openblas get-lapack get-fftw get-suitesparse get-arpack get-unwind get-osxunwind get-gmp get-mpfr get-zlib get-patchelf
 
 ## PATHS ##
-DIRS = $(addprefix $(BUILD)/,lib include bin share etc)
+# sort is used to remove potential duplicates
+DIRS = $(sort $(BUILD)$(BINDIR) $(BUILD)$(JL_LIBDIR) $(BUILD)$(INCLUDEDIR) $(BUILD)$(SYSCONFDIR) $(BUILD)$(DATADIR))
 
 $(foreach dir,$(DIRS),$(eval $(call dir_target,$(dir))))
 

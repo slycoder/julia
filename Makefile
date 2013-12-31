@@ -15,15 +15,8 @@ INSTALL_M = install -pm755
 all: default
 default: release
 
-DIRS = $(BUILD)$(BINDIR) $(BUILD)$(SYSCONFDIR)/julia $(BUILD)$(LIBEXECDIR) $(BUILD)$(DATADIR)/julia $(BUILD)$(DATADIR)/man/man1
-ifneq ($(JL_LIBDIR), bin)
-DIRS += $(BUILD)$(JL_LIBDIR)
-endif
-ifneq ($(JL_PRIVATE_LIBDIR), bin)
-ifneq ($(JL_PRIVATE_LIBDIR), $(JL_LIBDIR))
-DIRS += $(BUILD)$(JL_PRIVATE_LIBDIR)
-endif
-endif
+# sort is used to remove potential duplicates
+DIRS = $(sort $(BUILD)$(BINDIR) $(BUILD)$(JL_LIBDIR) $(BUILD)$(JL_PRIVATE_LIBDIR) $(BUILD)$(LIBEXECDIR) $(BUILD)$(SYSCONFDIR)/julia $(BUILD)$(DATADIR)/julia $(BUILD)$(DATADIR)/man/man1)
 
 $(foreach dir,$(DIRS),$(eval $(call dir_target,$(dir))))
 $(foreach link,base test doc examples,$(eval $(call symlink_target,$(link),$(BUILD)$(DATADIR)/julia)))
