@@ -176,9 +176,10 @@ install:
 	mkdir -p $(DESTDIR)$(sysconfdir)
 
 	$(INSTALL_M) $(BUILD)$(bindir)/julia* $(DESTDIR)$(bindir)/
+ifeq ($(OS),WINNT)
 	# $(INSTALL_F) $(BUILD)$(bindir)/llc$(EXE) $(DESTDIR)$(libexecdir) # this needs libLLVM-3.3.$(SHLIB_EXT)
 	-$(INSTALL_M) $(BUILD)$(bindir)/*.dll $(BUILD)$(bindir)/*.bat $(DESTDIR)$(bindir)/
-ifneq ($(OS),WINNT)
+else
 	-cp -a $(BUILD)$(libexecdir) $(DESTDIR)$(prefix)
 	cd $(DESTDIR)$(bindir) && ln -sf julia-$(DEFAULT_REPL) julia
 endif
