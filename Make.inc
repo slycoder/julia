@@ -213,6 +213,11 @@ AS := $(CROSS_COMPILE)as
 LD := $(CROSS_COMPILE)ld
 RANLIB := $(CROSS_COMPILE)ranlib
 
+ifneq ($(OS), WINNT)
+  libdir_REL = $(shell bash $(JULIAHOME)/contrib/relative_path.sh $(prefix)/bin $(libdir))
+  JL_PRIVATE_LIBDIR_REL = $(shell bash $(JULIAHOME)/contrib/relative_path.sh $(prefix)/bin $(JL_PRIVATE_LIBDIR))
+endif
+
 # if not absolute, then relative to the directory of the julia executable
 JCFLAGS += "-DJL_SYSTEM_IMAGE_PATH=\"$(JL_PRIVATE_LIBDIR_REL)/sys.ji\""
 
@@ -368,19 +373,14 @@ else
 endif
 
 # shared library runtime paths
-ifneq ($(OS), WINNT)
-  LIBDIR_REL = $(shell realpath $(libdir) --relative-to=$(prefix)/bin/)
-  JL_PRIVATE_LIBDIR_REL = $(shell realpath $(JL_PRIVATE_LIBDIR) --relative-to=$(prefix)/bin/)
-endif
-
 ifeq ($(OS), WINNT)
   RPATH =
   RPATH_ORIGIN =
 else ifeq ($(OS), Darwin)
-  RPATH = -Wl,-rpath,'@executable_path/$(JL_PRIVATE_LIBDIR_REL)' -Wl,-rpath,'@executable_path/$(LIBDIR_REL)'
+  RPATH = -Wl,-rpath,'@executable_path/$(JL_PRIVATE_LIBDIR_REL)' -Wl,-rpath,'@executable_path/$(libdir_REL)'
   RPATH_ORIGIN =
 else
-  RPATH = -Wl,-rpath,'$$ORIGIN/$(JL_PRIVATE_LIBDIR_REL)' -Wl,-rpath,'$$ORIGIN/$(LIBDIR_REL)' -Wl,-z,origin
+  RPATH = -Wl,-rpath,'$$ORIGIN/$(JL_PRIVATE_LIBDIR_REL)' -Wl,-rpath,'$$ORIGIN/$(libdir_REL)' -Wl,-z,origin
   RPATH_ORIGIN = -Wl,-rpath,'$$ORIGIN' -Wl,-z,origin
 endif
 
