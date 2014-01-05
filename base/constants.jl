@@ -10,12 +10,12 @@ promote_rule{s}(::Type{MathConst{s}}, ::Type{Float64}) = Float64
 promote_rule{s}(::Type{MathConst{s}}, ::Type{Float32}) = Float32
 promote_rule{s}(::Type{MathConst{s}}, ::Type{BigInt}) = BigFloat
 promote_rule{s}(::Type{MathConst{s}}, ::Type{BigFloat}) = BigFloat
-promote_rule{s}(::Type{MathConst{s}}, ::Type{ImaginaryUnit}) = Complex{Float64}
-promote_rule{s}(::Type{ImaginaryUnit}, ::Type{MathConst{s}}) = Complex{Float64}
 
 promote_rule{s,T<:Integer}(::Type{MathConst{s}}, ::Type{Rational{T}}) =
     promote_type(MathConst{s},T)
 promote_rule{s,T<:Real}(::Type{MathConst{s}}, ::Type{Complex{T}}) =
+    Complex{promote_type(MathConst{s},T)}
+promote_rule{s,T<:Real}(::Type{MathConst{s}}, ::Type{Imaginary{T}}) =
     Complex{promote_type(MathConst{s},T)}
 
 convert(::Type{FloatingPoint}, x::MathConst) = float64(x)
@@ -27,9 +27,6 @@ convert{T<:Integer}(::Type{Rational{T}}, x::MathConst) = convert(Rational{T}, fl
 for op in {:+, :-, :*, :/, :^}
     @eval $op(x::MathConst, y::MathConst) = $op(float64(x),float64(y))
 end
-
-*(x::MathConst, i::ImaginaryUnit) = float64(x)*i
-*(i::ImaginaryUnit, x::MathConst) = i*float64(x)
 
 macro math_const(sym, val, def)
     esym = esc(sym)
@@ -78,7 +75,7 @@ const golden = φ
 #    ^(::MathConst{:e}, x::Number) = exp(x)
 #    .^(::MathConst{:e}, x) = exp(x)
 # but need to loop over types to prevent ambiguity with generic rules for ^(::Number, x) etc.
-for T in (MathConst, Rational, Integer, Number)
+for T in (MathConst, Imaginary, Rational, Integer, Number)
     ^(::MathConst{:e}, x::T) = exp(x)
 end
 for T in (Ranges, BitArray, SparseMatrixCSC, StridedArray, AbstractArray)
