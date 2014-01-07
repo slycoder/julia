@@ -16,21 +16,21 @@ all: default
 default: release
 
 # sort is used to remove potential duplicates
-DIRS = $(sort $(BUILD)$(bindir) $(BUILD)$(libdir) $(BUILD)$(JL_PRIVATE_LIBDIR) $(BUILD)$(libexecdir) $(BUILD)$(sysconfdir)/julia $(BUILD)$(datarootdir)/julia $(BUILD)$(datarootdir)/man/man1)
+DIRS = $(sort $(build_bindir) $(build_libdir) $(build_private_libdir) $(build_libexecdir) $(build_sysconfdir)/julia $(build_datarootdir)/julia $(build_datarootdir)/man/man1)
 
 $(foreach dir,$(DIRS),$(eval $(call dir_target,$(dir))))
-$(foreach link,base test doc examples,$(eval $(call symlink_target,$(link),$(BUILD)$(datarootdir)/julia)))
+$(foreach link,base test doc examples,$(eval $(call symlink_target,$(link),$(build_datarootdir)/julia)))
 
-debug release: | $(DIRS) $(BUILD)$(datarootdir)/julia/base $(BUILD)$(datarootdir)/julia/test $(BUILD)$(datarootdir)/julia/doc $(BUILD)$(datarootdir)/julia/examples $(BUILD)$(sysconfdir)/julia/juliarc.jl
+debug release: | $(DIRS) $(build_datarootdir)/julia/base $(build_datarootdir)/julia/test $(build_datarootdir)/julia/doc $(build_datarootdir)/julia/examples $(build_sysconfdir)/julia/juliarc.jl
 	@$(MAKE) $(QUIET_MAKE) julia-$@
-	@export JL_PRIVATE_LIBDIR=$(JL_PRIVATE_LIBDIR) && \
-	$(MAKE) $(QUIET_MAKE) LD_LIBRARY_PATH=$(BUILD)$(libdir):$(LD_LIBRARY_PATH) JULIA_EXECUTABLE="$(JULIA_EXECUTABLE_$@)" $(BUILD)$(JL_PRIVATE_LIBDIR)/sys.$(SHLIB_EXT)
+	@export private_libdir=$(private_libdir) && \
+	$(MAKE) $(QUIET_MAKE) LD_LIBRARY_PATH=$(build_libdir):$(LD_LIBRARY_PATH) JULIA_EXECUTABLE="$(JULIA_EXECUTABLE_$@)" $(build_private_libdir)/sys.$(SHLIB_EXT)
 
 julia-debug-symlink:
-	@ln -sf $(BUILD)$(bindir)/julia-debug-$(DEFAULT_REPL) julia
+	@ln -sf $(build_bindir)/julia-debug-$(DEFAULT_REPL) julia
 
 julia-release-symlink:
-	@ln -sf $(BUILD)$(bindir)/julia-$(DEFAULT_REPL) julia
+	@ln -sf $(build_bindir)/julia-$(DEFAULT_REPL) julia
 
 julia-debug julia-release:
 	@-git submodule init --quiet
@@ -45,39 +45,39 @@ ifndef JULIA_VAGRANT_BUILD
 endif
 endif
 
-$(BUILD)$(datarootdir)/julia/helpdb.jl: doc/helpdb.jl | $(BUILD)$(datarootdir)/julia
+$(build_datarootdir)/julia/helpdb.jl: doc/helpdb.jl | $(build_datarootdir)/julia
 	@cp $< $@
 
-$(BUILD)$(datarootdir)/man/man1/julia.1: doc/man/julia.1 | $(BUILD)$(datarootdir)/julia
-	@mkdir -p $(BUILD)$(datarootdir)/man/man1
+$(build_datarootdir)/man/man1/julia.1: doc/man/julia.1 | $(build_datarootdir)/julia
+	@mkdir -p $(build_datarootdir)/man/man1
 	@cp $< $@
 
-$(BUILD)$(sysconfdir)/julia/juliarc.jl: etc/juliarc.jl | $(BUILD)$(sysconfdir)/julia
+$(build_sysconfdir)/julia/juliarc.jl: etc/juliarc.jl | $(build_sysconfdir)/julia
 	@cp $< $@
 ifeq ($(OS), WINNT)
-	@cat ./contrib/windows/juliarc.jl >> $(BUILD)$(sysconfdir)/julia/juliarc.jl
-$(BUILD)$(sysconfdir)/julia/juliarc.jl: contrib/windows/juliarc.jl
+	@cat ./contrib/windows/juliarc.jl >> $(build_sysconfdir)/julia/juliarc.jl
+$(build_sysconfdir)/julia/juliarc.jl: contrib/windows/juliarc.jl
 endif
 
 # use sys.ji if it exists, otherwise run two stages
-$(BUILD)$(JL_PRIVATE_LIBDIR)/sys%ji: $(BUILD)$(JL_PRIVATE_LIBDIR)/sys%bc
+$(build_private_libdir)/sys%ji: $(build_private_libdir)/sys%bc
 
-$(BUILD)$(JL_PRIVATE_LIBDIR)/sys%o: $(BUILD)$(JL_PRIVATE_LIBDIR)/sys%bc
+$(build_private_libdir)/sys%o: $(build_private_libdir)/sys%bc
 	$(call spawn,$(LLVM_LLC)) -filetype=obj -relocation-model=pic -mattr=-bmi2,-avx2 -o $@ $<
 
-$(BUILD)$(JL_PRIVATE_LIBDIR)/sys%$(SHLIB_EXT): $(BUILD)$(JL_PRIVATE_LIBDIR)/sys%o
-	$(CXX) -shared -fPIC -L$(BUILD)$(JL_PRIVATE_LIBDIR) -L$(BUILD)$(libdir) -o $@ $< \
+$(build_private_libdir)/sys%$(SHLIB_EXT): $(build_private_libdir)/sys%o
+	$(CXX) -shared -fPIC -L$(build_private_libdir) -L$(build_libdir) -o $@ $< \
 		$$([ $(OS) = Darwin ] && echo -Wl,-undefined,dynamic_lookup || echo -Wl,--unresolved-symbols,ignore-all ) \
 		$$([ $(OS) = WINNT ] && echo -ljulia -lssp)
 
-$(BUILD)$(JL_PRIVATE_LIBDIR)/sys0.bc:
+$(build_private_libdir)/sys0.bc:
 	@$(QUIET_JULIA) cd base && \
-	$(call spawn,$(JULIA_EXECUTABLE)) --build $(BUILD)$(JL_PRIVATE_LIBDIR)/sys0 sysimg.jl
+	$(call spawn,$(JULIA_EXECUTABLE)) --build $(build_private_libdir)/sys0 sysimg.jl
 
-$(BUILD)$(JL_PRIVATE_LIBDIR)/sys.bc: VERSION base/*.jl base/pkg/*.jl base/linalg/*.jl base/sparse/*.jl $(BUILD)$(datarootdir)/julia/helpdb.jl $(BUILD)$(datarootdir)/man/man1/julia.1 $(BUILD)$(JL_PRIVATE_LIBDIR)/sys0.$(SHLIB_EXT)
+$(build_private_libdir)/sys.bc: VERSION base/*.jl base/pkg/*.jl base/linalg/*.jl base/sparse/*.jl $(build_datarootdir)/julia/helpdb.jl $(build_datarootdir)/man/man1/julia.1 $(build_private_libdir)/sys0.$(SHLIB_EXT)
 	@$(QUIET_JULIA) cd base && \
-	$(call spawn,$(JULIA_EXECUTABLE)) --build $(BUILD)$(JL_PRIVATE_LIBDIR)/sys \
-		-J$(BUILD)$(JL_PRIVATE_LIBDIR)/$$([ -e $(BUILD)$(JL_PRIVATE_LIBDIR)/sys.ji ] && echo sys.ji || echo sys0.ji) -f sysimg.jl \
+	$(call spawn,$(JULIA_EXECUTABLE)) --build $(build_private_libdir)/sys \
+		-J$(build_private_libdir)/$$([ -e $(build_private_libdir)/sys.ji ] && echo sys.ji || echo sys0.ji) -f sysimg.jl \
 		|| (echo "*** This error is usually fixed by running 'make clean'. If the error persists, try 'make cleanall'. ***" && false)
 
 run-julia-debug run-julia-release: run-julia-%:
@@ -139,12 +139,12 @@ endif
 
 ifeq ($(OS),WINNT)
 define std_dll
-debug release: | $$(BUILD)/$$(libdir)/lib$(1).dll
-$$(BUILD)/$$(libdir)/lib$(1).dll: | $$(BUILD)/$$(libdir)
+debug release: | $$(build_libdir)/lib$(1).dll
+$$(build_libdir)/lib$(1).dll: | $$(build_libdir)
 ifeq ($$(BUILD_OS),$$(OS))
-	cp $$(call pathsearch,lib$(1).dll,$$(PATH)) $$(BUILD)/$$(libdir) ;
+	cp $$(call pathsearch,lib$(1).dll,$$(PATH)) $$(build_libdir) ;
 else
-	cp $$(call wine_pathsearch,lib$(1).dll,$$(STD_LIB_PATH)) $$(BUILD)/$$(libdir) ;
+	cp $$(call wine_pathsearch,lib$(1).dll,$$(STD_LIB_PATH)) $$(build_libdir) ;
 endif
 JL_LIBS += $(1)
 endef
@@ -172,46 +172,60 @@ install:
 	mkdir -p $(DESTDIR)$(datarootdir)/man/man1
 	mkdir -p $(DESTDIR)$(includedir)/julia
 	mkdir -p $(DESTDIR)$(libdir)
-	mkdir -p $(DESTDIR)$(JL_PRIVATE_LIBDIR)
+	mkdir -p $(DESTDIR)$(private_libdir)
 	mkdir -p $(DESTDIR)$(sysconfdir)
 
-	$(INSTALL_M) $(BUILD)$(bindir)/julia* $(DESTDIR)$(bindir)/
+	$(INSTALL_M) $(build_bindir)/julia* $(DESTDIR)$(bindir)/
 ifeq ($(OS),WINNT)
-	# $(INSTALL_F) $(BUILD)$(bindir)/llc$(EXE) $(DESTDIR)$(libexecdir) # this needs libLLVM-3.3.$(SHLIB_EXT)
-	-$(INSTALL_M) $(BUILD)$(bindir)/*.dll $(BUILD)$(bindir)/*.bat $(DESTDIR)$(bindir)/
+	# $(INSTALL_F) $(build_bindir)/llc$(EXE) $(DESTDIR)$(libexecdir) # this needs libLLVM-3.3.$(SHLIB_EXT)
+	-$(INSTALL_M) $(build_bindir)/*.dll $(build_bindir)/*.bat $(DESTDIR)$(bindir)/
 else
-	-cp -a $(BUILD)$(libexecdir) $(DESTDIR)$(prefix)
+	-cp -a $(build_libexecdir) $(DESTDIR)$(prefix)
 	cd $(DESTDIR)$(bindir) && ln -sf julia-$(DEFAULT_REPL) julia
 endif
 	for suffix in $(JL_LIBS) ; do \
-		$(INSTALL_M) $(BUILD)$(libdir)/lib$${suffix}*.$(SHLIB_EXT)* $(DESTDIR)$(JL_PRIVATE_LIBDIR) ; \
+		$(INSTALL_M) $(build_libdir)/lib$${suffix}*.$(SHLIB_EXT)* $(DESTDIR)$(private_libdir) ; \
 	done
 	for suffix in $(JL_PRIVATE_LIBS) ; do \
-		$(INSTALL_M) $(BUILD)$(libdir)/lib$${suffix}*.$(SHLIB_EXT)* $(DESTDIR)$(JL_PRIVATE_LIBDIR) ; \
+		$(INSTALL_M) $(build_libdir)/lib$${suffix}*.$(SHLIB_EXT)* $(DESTDIR)$(private_libdir) ; \
 	done
 ifeq ($(USE_SYSTEM_LIBUV),0)
 ifeq ($(OS),WINNT)
-	$(INSTALL_M) $(BUILD)$(libdir)/libuv.a $(DESTDIR)$(JL_PRIVATE_LIBDIR)
-	$(INSTALL_F) $(BUILD)$(includedir)/tree.h $(DESTDIR)$(includedir)/julia
+	$(INSTALL_M) $(build_libdir)/libuv.a $(DESTDIR)$(private_libdir)
+	$(INSTALL_F) $(build_includedir)/tree.h $(DESTDIR)$(includedir)/julia
 else
-	$(INSTALL_M) $(BUILD)$(libdir)/libuv.a $(DESTDIR)$(JL_PRIVATE_LIBDIR)
+	$(INSTALL_M) $(build_libdir)/libuv.a $(DESTDIR)$(private_libdir)
 endif
-	$(INSTALL_F) $(BUILD)$(includedir)/uv* $(DESTDIR)$(includedir)/julia
+	$(INSTALL_F) $(build_includedir)/uv* $(DESTDIR)$(includedir)/julia
 endif
 	$(INSTALL_F) src/julia.h src/support/*.h $(DESTDIR)$(includedir)/julia
 	# Copy system image
-	$(INSTALL_F) $(BUILD)$(JL_PRIVATE_LIBDIR)/sys.ji $(DESTDIR)$(JL_PRIVATE_LIBDIR)
-	$(INSTALL_M) $(BUILD)$(JL_PRIVATE_LIBDIR)/sys.$(SHLIB_EXT) $(DESTDIR)$(JL_PRIVATE_LIBDIR)
+	$(INSTALL_F) $(build_private_libdir)/sys.ji $(DESTDIR)$(private_libdir)
+	$(INSTALL_M) $(build_private_libdir)/sys.$(SHLIB_EXT) $(DESTDIR)$(private_libdir)
 	# Copy in all .jl sources as well
-	cp -R -L $(BUILD)$(datarootdir)/julia $(DESTDIR)$(datarootdir)/
+	cp -R -L $(build_datarootdir)/julia $(DESTDIR)$(datarootdir)/
 ifeq ($(OS), WINNT)
 	cp $(JULIAHOME)/contrib/windows/*.bat $(DESTDIR)$(prefix)
 endif
 	# Copy in beautiful new man page!
-	$(INSTALL_F) $(BUILD)$(datarootdir)/man/man1/julia.1 $(DESTDIR)$(datarootdir)/man/man1/
+	$(INSTALL_F) $(build_datarootdir)/man/man1/julia.1 $(DESTDIR)$(datarootdir)/man/man1/
+
+	# Update RPATH entries of Julia if $(private_libdir_rel) != $(build_private_libdir_rel)
+ifneq ($(private_libdir_rel),$(build_private_libdir_rel))
+ifeq ($(OS), Darwin)
+	for julia in $(DESTDIR)$(bindir)/julia-* ; do \
+		install_name_tool -rpath @executable_path/$(build_private_libdir_rel) @executable_path/$(private_libdir_rel) $$julia; \
+		install_name_tool -rpath @executable_path/$(build_libdir_rel) @executable_path/$(libdir_rel) $$julia; \
+	done
+else ifeq ($(OS), Linux)
+	for julia in $(DESTDIR)$(bindir)/julia-* ; do \
+		patchelf --set-rpath '$$ORIGIN/$(private_libdir_rel):$$ORIGIN/$(libdir_rel)' $$julia; \
+	done
+endif
+endif
 
 	mkdir -p $(DESTDIR)$(sysconfdir)
-	cp -R $(BUILD)$(sysconfdir)/julia $(DESTDIR)$(sysconfdir)/
+	cp -R $(build_sysconfdir)/julia $(DESTDIR)$(sysconfdir)/
 
 
 dist:
@@ -228,7 +242,7 @@ endif
 	@$(MAKE) install
 	cp LICENSE.md julia-$(JULIA_COMMIT)
 ifeq ($(OS), Darwin)
-	-./contrib/mac/fixup-libgfortran.sh $(DESTDIR)$(JL_PRIVATE_LIBDIR)
+	-./contrib/mac/fixup-libgfortran.sh $(DESTDIR)$(private_libdir)
 endif
 	# Copy in juliarc.jl files per-platform for binary distributions as well
 	# Note that we don't install to sysconfdir: we always install to $(DESTDIR)$(prefix)/etc.
@@ -256,27 +270,27 @@ clean: | $(CLEAN_TARGETS)
 	@$(MAKE) -C src clean
 	@$(MAKE) -C ui clean
 	for repltype in "basic" "readline"; do \
-		rm -f $(BUILD)$(bindir)/julia-debug-$${repltype}; \
-		rm -f $(BUILD)$(bindir)/julia-$${repltype}; \
+		rm -f $(build_bindir)/julia-debug-$${repltype}; \
+		rm -f $(build_bindir)/julia-$${repltype}; \
 	done
 	@rm -f julia
 	@rm -f *~ *# *.tar.gz
-	@rm -fr $(BUILD)$(JL_PRIVATE_LIBDIR)
+	@rm -fr $(build_private_libdir)
 # Temporarily add this line to the Makefile to remove extras
-	@rm -fr $(BUILD)$(datarootdir)/julia/extras
+	@rm -fr $(build_datarootdir)/julia/extras
 
 cleanall: clean
 	@$(MAKE) -C src clean-flisp clean-support
-	@rm -fr $(BUILD)$(libdir)
+	@rm -fr $(build_libdir)
 ifeq ($(OS),WINNT)
-	@rm -rf $(BUILD)/lib
+	@rm -rf $(build_prefix)/lib
 endif
 	@$(MAKE) -C deps clean-uv
 
 distclean: cleanall
 	@$(MAKE) -C deps distclean
 	@$(MAKE) -C doc cleanall
-	rm -fr $(BUILD)
+	rm -fr $(build_prefix)
 
 .PHONY: default debug release julia-debug julia-release \
 	test testall testall1 test-* clean distclean cleanall \
