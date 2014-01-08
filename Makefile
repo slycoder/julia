@@ -87,6 +87,10 @@ run-julia:
 run:
 	@$(call spawn,$(cmd))
 
+$(build_bindir)/stringpatch:
+	@$(call PRINT_CC, $(CC) -o $(build_bindir)/stringpatch contrib/stringpatch.c)
+
+
 # public libraries, that are installed in $(prefix)/lib
 JL_LIBS = julia julia-debug
 
@@ -162,7 +166,7 @@ endif
 endif
 
 prefix ?= julia-$(JULIA_COMMIT)
-install:
+install: $(build_bindir)/stringpatch
 	@$(MAKE) $(QUIET_MAKE) release
 	@$(MAKE) $(QUIET_MAKE) debug
 
@@ -223,6 +227,10 @@ else ifeq ($(OS), Linux)
 	done
 endif
 endif
+	# Overwrite JL_SYSTEM_IMAGE_PATH in julia binaries:
+	for julia in $(DESTDIR)$(bindir)/julia-* ; do \
+		$(build_bindir)/stringpatch $(firstword $(shell strings -t x - ./julia | grep "sys.ji")) "$(private_libdir_rel)/sys.ji" $$julia; \
+	done
 
 	mkdir -p $(DESTDIR)$(sysconfdir)
 	cp -R $(build_sysconfdir)/julia $(DESTDIR)$(sysconfdir)/
@@ -275,6 +283,7 @@ clean: | $(CLEAN_TARGETS)
 	done
 	@rm -f julia
 	@rm -f *~ *# *.tar.gz
+	@rm -f $(build_bindir)/stringpatch
 	@rm -fr $(build_private_libdir)
 # Temporarily add this line to the Makefile to remove extras
 	@rm -fr $(build_datarootdir)/julia/extras
