@@ -227,11 +227,11 @@ else ifeq ($(OS), Linux)
 		patchelf --set-rpath '$$ORIGIN/$(private_libdir_rel):$$ORIGIN/$(libdir_rel)' $$julia; \
 	done
 endif
-endif
 	# Overwrite JL_SYSTEM_IMAGE_PATH in julia binaries:
 	for julia in $(DESTDIR)$(bindir)/julia-* ; do \
 		$(build_bindir)/stringpatch $(firstword $(shell strings -t x - ./julia | grep "sys.ji")) "$(private_libdir_rel)/sys.ji" $$julia; \
 	done
+endif
 
 	mkdir -p $(DESTDIR)$(sysconfdir)
 	cp -R $(build_sysconfdir)/julia $(DESTDIR)$(sysconfdir)/
