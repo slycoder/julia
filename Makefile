@@ -88,6 +88,7 @@ run:
 	@$(call spawn,$(cmd))
 
 $(build_bindir)/stringpatch:
+	mkdir -p $(build_bindir)
 	@$(call PRINT_CC, $(CC) -o $(build_bindir)/stringpatch contrib/stringpatch.c)
 
 
