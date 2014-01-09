@@ -229,7 +229,7 @@ else ifeq ($(OS), Linux)
 endif
 	# Overwrite JL_SYSTEM_IMAGE_PATH in julia binaries:
 	for julia in $(DESTDIR)$(bindir)/julia-* ; do \
-		$(build_bindir)/stringpatch $(firstword $(shell strings -t x - ./julia | grep "sys.ji")) "$(private_libdir_rel)/sys.ji" $$julia; \
+		$(build_bindir)/stringpatch $$(strings -t x - $$julia | grep "sys.ji$$" | awk '{print $$1;}' ) "$(private_libdir_rel)/sys.ji" $$julia; \
 	done
 endif
 
