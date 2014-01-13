@@ -15,7 +15,7 @@ CONFIGURE_COMMON = $(CONFIGURE_OPTIONS) $(CONFIGURE_CC)
 
 # If the top-level Makefile is called with environment variables,
 # they will override the values passed above to ./configure
-MAKE_COMMON = prefix=$(build_prefix) bindir=$(build_bindir) libdir=$(build_libdir) libexecdir=$(build_libexecdir) datarootdir=$(build_datarootdir) includedir=$(build_includedir) sysconfdir=$(build_sysconfdir)
+MAKE_COMMON = DESTDIR="" prefix=$(build_prefix) bindir=$(build_bindir) libdir=$(build_libdir) libexecdir=$(build_libexecdir) datarootdir=$(build_datarootdir) includedir=$(build_includedir) sysconfdir=$(build_sysconfdir)
 
 #autoconf configure-driven scripts: llvm readline pcre arpack fftw unwind gmp mpfr patchelf uv
 #custom Makefile rules: openlibm Rmath double-conversion random suitesparse-wrapper suitesparse lapack openblas
